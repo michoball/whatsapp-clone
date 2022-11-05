@@ -11,6 +11,7 @@ import getRecipientEmail from "../utils/getRecipientEmail";
 function Chat({ id, users }) {
   const router = useRouter();
   const [user] = useAuthState(auth);
+  const recipientEmail = getRecipientEmail(users, user);
   const q = query(
     collection(db, "users"),
     where("email", "==", getRecipientEmail(users, user))
@@ -21,7 +22,7 @@ function Chat({ id, users }) {
     router.push(`/chat/${id}`);
   };
   const recipient = recipientSnapshot?.docs?.[0]?.data();
-  const recipientEmail = getRecipientEmail(users, user);
+
 
   return (
     <Container onClick={enterChat}>

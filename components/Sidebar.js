@@ -44,8 +44,11 @@ function Sidebar() {
       addDoc(collection(db, "chats"), {
         users: [user.email, input],
       });
+    } else {
+      alert("Chat room is aready exist! ");
     }
   };
+
   const chatAlreadyExists = (recipientEmail) =>
     !!chatsSnapshot?.docs.filter((chat) =>
       chat.data().users.find((user) => user.includes(recipientEmail))
@@ -53,18 +56,19 @@ function Sidebar() {
   // => blooean 값을 가지는 함수
   // !chatAlreadyExists를 하면 true면 false가 false면 true가 반환된다.
   // console.log(chatAlreadyExists("kmh060020@gmail.com"));
+
   return (
     <Container>
       <Header>
         <UserAvatar onClick={() => signOut(auth)} />
 
         <IconsContainer>
-          <IconButton>
+          <UserIconButton>
             <ChatIcon />
-          </IconButton>
-          <IconButton>
+          </UserIconButton>
+          <UserIconButton>
             <MoreVertIcon />
-          </IconButton>
+          </UserIconButton>
         </IconsContainer>
       </Header>
 
@@ -87,6 +91,7 @@ export default Sidebar;
 const Container = styled.div`
   flex: 0.45;
   border-right: 1px solid whitesmoke;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
   height: 100vh;
   min-width: 300px;
   max-width: 350px;
@@ -96,29 +101,6 @@ const Container = styled.div`
     display: none;
   }
 `;
-
-const Search = styled.div`
-  display: flex;
-  align-items: center;
-  padding: 20px;
-  border-radius: 2px;
-`;
-
-const SidebarButton = styled(Button)`
-  width: 100%;
-
-  &&& {
-    border-top: 1px solid whitesmoke;
-    border-bottom: 1px solid whitesmoke;
-  }
-`;
-
-const SearchInput = styled.input`
-  outline-width: 0;
-  border: none;
-  flex: 1;
-`;
-
 const Header = styled.div`
   display: flex;
   position: sticky;
@@ -136,8 +118,42 @@ const UserAvatar = styled(Avatar)`
   cursor: pointer;
 
   :hover {
-    opacity: 0.8;
+    transform: translateY(2px);
+    box-shadow: -4px -5px 10px rgba(0, 0, 0, 0.5);
+    transition: transform 0.2s;
+  }
+`;
+
+const Search = styled.div`
+  display: flex;
+  align-items: center;
+  padding: 20px;
+  border-radius: 2px;
+
+  box-shadow: inset 3px 0 10px rgba(0, 0, 0, 0.5);
+`;
+
+const SearchInput = styled.input`
+  outline-width: 0;
+  border: none;
+  flex: 1;
+`;
+
+const SidebarButton = styled(Button)`
+  width: 100%;
+  background-color: aliceblue !important;
+  &&& {
+    border-top: 1px solid whitesmoke;
+    border-bottom: 1px solid whitesmoke;
   }
 `;
 
 const IconsContainer = styled.div``;
+
+const UserIconButton = styled(IconButton)`
+  :hover {
+    transform: translateY(2px);
+    box-shadow: -4px -5px 10px rgba(0, 0, 0, 0.5);
+    transition: transform 0.2s;
+  }
+`;

@@ -20,15 +20,17 @@ import {
 import Message from "./Message";
 import InsertEmoticonIcon from "@mui/icons-material/InsertEmoticon";
 import MicIcon from "@mui/icons-material/Mic";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import getRecipientEmail from "../utils/getRecipientEmail";
 import TimeAgo from "timeago-react";
 
 function ChatScreen({ chat, messages }) {
   const [user] = useAuthState(auth);
   const [input, setInput] = useState("");
+
   const endfMessagesRef = useRef(null);
   const router = useRouter();
+
   const chatRef = doc(collection(db, "chats"), router.query.id);
   // query를 만들어서 useCollection 에 넣어야 orderBy timestamp가 제대로 먹힌다.
   const chatQuery = query(
@@ -37,24 +39,15 @@ function ChatScreen({ chat, messages }) {
   );
   const [messagesSnapshot] = useCollection(chatQuery);
 
+  const recipientEmail = getRecipientEmail(chat.users, user);
   const recipientQuery = query(
     collection(db, "users"),
-    where("email", "==", getRecipientEmail(chat.users, user))
+    where("email", "==", recipientEmail)
   );
   const [recipientSnapshot] = useCollection(recipientQuery);
 
   const showMessages = () => {
     if (messagesSnapshot) {
-      console.log(
-        messagesSnapshot.docs.map((message) => {
-          return {
-            time: message.data().timestamp?.toDate().getTime(),
-            user: message.data().user,
-            message: message.data().message,
-          };
-        })
-      );
-
       return messagesSnapshot.docs.map((message) => (
         <Message
           key={message.id}
@@ -79,6 +72,10 @@ function ChatScreen({ chat, messages }) {
     });
   };
 
+  useEffect(() => {
+    ScrollToBottom();
+  }, [messagesSnapshot]);
+
   const sendMessage = (e) => {
     e.preventDefault();
 
@@ -91,7 +88,6 @@ function ChatScreen({ chat, messages }) {
       { merge: true }
     );
 
-    const chatRef = doc(collection(db, "chats"), router.query.id);
     addDoc(collection(chatRef, "messages"), {
       timestamp: serverTimestamp(),
       message: input,
@@ -104,9 +100,9 @@ function ChatScreen({ chat, messages }) {
   };
 
   const recipient = recipientSnapshot?.docs?.[0]?.data();
-  const recipientEmail = getRecipientEmail(chat.users, user);
+
   return (
-    <Container>
+    <>
       <Header>
         {recipient ? (
           <Avatar src={recipient?.photoURL} />
@@ -139,21 +135,22 @@ function ChatScreen({ chat, messages }) {
           </IconButton>
         </HeaderIcons>
       </Header>
+      <Container>
+        <MessageContainer>
+          {showMessages()}
+          <EndOfMessage ref={endfMessagesRef} />
+        </MessageContainer>
 
-      <MessageContainer>
-        {showMessages()}
-        <EndOfMessage ref={endfMessagesRef} />
-      </MessageContainer>
-
-      <InputContainer>
-        <InsertEmoticonIcon />
-        <Input value={input} onChange={(e) => setInput(e.target.value)} />
-        <button hidden disabled={!input} type="submit" onClick={sendMessage}>
-          Send Message
-        </button>
-        <MicIcon />
-      </InputContainer>
-    </Container>
+        <InputContainer>
+          <InsertEmoticonIcon />
+          <Input value={input} onChange={(e) => setInput(e.target.value)} />
+          <button hidden disabled={!input} type="submit" onClick={sendMessage}>
+            Send Message
+          </button>
+          <MicIcon />
+        </InputContainer>
+      </Container>
+    </>
   );
 }
 
@@ -207,15 +204,14 @@ const HeaderInfomation = styled.div`
     color: gray;
   }
 `;
+const MessageContainer = styled.div`
+  padding: 30px;
+  background-color: #e5ded8;
+  min-height: 90vh;
+`;
 
 const EndOfMessage = styled.div`
   margin-bottom: 50px;
 `;
 
 const HeaderIcons = styled.div``;
-
-const MessageContainer = styled.div`
-  padding: 30px;
-  background-color: #e5ded8;
-  min-height: 90vh;
-`;
